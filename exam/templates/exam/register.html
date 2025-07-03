@@ -1,0 +1,188 @@
+{% extends "exam/base.html" %}
+{% load static %} {# Make sure static is loaded #}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<style>
+    /* Keep existing styles */
+    #webcam-container {
+        margin-top: 15px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        display: none; /* Initially hidden */
+        text-align: center;
+    }
+    #videoElement {
+        width: 320px;
+        height: 240px;
+        border: 1px solid black;
+        display: block;
+        margin: 0 auto 10px auto;
+    }
+    #canvasElement {
+        display: none; /* Hidden canvas for drawing */
+    }
+    .button-group button {
+        margin: 5px;
+    }
+</style>
+
+<h2>Register</h2>
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{# Use one form for everything #}
+<form id="registerForm" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="username" class="form-label">Username:</label>
+        <input type="text" name="username" id="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Password:</label>
+        <input type="password" name="password" id="password" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="first_name" class="form-label">First Name:</label>
+        <input type="text" name="first_name" id="first_name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="last_name" class="form-label">Last Name:</label>
+        <input type="text" name="last_name" id="last_name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email:</label>
+        <input type="email" name="email" id="email" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="phone_number" class="form-label">Phone Number (with country code):</label>
+        <input type="tel" name="phone_number" id="phone_number" class="form-control" placeholder="+91XXXXXXXXXX" required>
+    </div>
+
+    <hr>
+    <p><strong>Face Verification:</strong> Please provide a clear face image.</p>
+
+    <div class="mb-3 button-group">
+        <button type="button" id="showUploadBtn" class="btn btn-info">Upload Face Image</button>
+        <button type="button" id="showCaptureBtn" class="btn btn-info">Capture Face Image</button>
+    </div>
+
+    {# Upload Section (Initially Hidden) #}
+    <div class="mb-3" id="upload-section" style="display:none;">
+        <label for="face_data" class="form-label">Select image file:</label>
+        <input type="file" name="face_data" id="face_data" class="form-control" accept="image/*">
+    </div>
+
+    {# Capture Section (Initially Hidden) #}
+    <div id="webcam-container" style="display:none;">
+        <p>Position your face clearly in the frame.</p>
+        <video id="videoElement" autoplay playsinline></video>
+        <canvas id="canvasElement" width="320" height="240"></canvas>
+        <button type="button" id="captureBtn" class="btn btn-warning">Take Photo</button>
+        <p id="captureStatus"></p>
+        {# Hidden input to store captured image data #}
+        <input type="hidden" name="face_data_capture" id="face_data_capture">
+    </div>
+    <hr>
+
+    <button type="submit" class="btn btn-primary w-100">Register</button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const showUploadBtn = document.getElementById('showUploadBtn');
+    const showCaptureBtn = document.getElementById('showCaptureBtn');
+    const uploadSection = document.getElementById('upload-section');
+    const webcamContainer = document.getElementById('webcam-container');
+    const videoElement = document.getElementById('videoElement');
+    const canvasElement = document.getElementById('canvasElement');
+    const captureBtn = document.getElementById('captureBtn');
+    const captureStatus = document.getElementById('captureStatus');
+    const hiddenCaptureInput = document.getElementById('face_data_capture');
+    const fileInput = document.getElementById('face_data');
+    let stream = null; // To hold the webcam stream
+
+    // --- Toggle Visibility ---
+    showUploadBtn.addEventListener('click', () => {
+        uploadSection.style.display = 'block';
+        webcamContainer.style.display = 'none';
+        stopWebcam(); // Stop webcam if running
+        hiddenCaptureInput.value = ''; // Clear captured data if switching
+    });
+
+    showCaptureBtn.addEventListener('click', () => {
+        uploadSection.style.display = 'none';
+        webcamContainer.style.display = 'block';
+        fileInput.value = ''; // Clear file input if switching
+        startWebcam();
+    });
+
+    // --- Webcam Functions ---
+    async function startWebcam() {
+        if (stream) { // If already running, do nothing
+            return;
+        }
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            videoElement.srcObject = stream;
+            captureStatus.textContent = 'Webcam active.';
+        } catch (err) {
+            console.error("Error accessing webcam: ", err);
+            captureStatus.textContent = 'Error accessing webcam. Please ensure permissions are granted.';
+            webcamContainer.style.display = 'none'; // Hide webcam section on error
+        }
+    }
+
+    function stopWebcam() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            videoElement.srcObject = null;
+            captureStatus.textContent = '';
+        }
+    }
+
+    // --- Capture Photo ---
+    captureBtn.addEventListener('click', () => {
+        if (!stream) {
+            captureStatus.textContent = 'Webcam not active.';
+            return;
+        }
+        const context = canvasElement.getContext('2d');
+        // Draw the current frame from the video onto the canvas
+        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+        // Get the image data from the canvas as a data URL (JPEG format)
+        const imageDataURL = canvasElement.toDataURL('image/jpeg', 0.9); // Quality 0.9
+
+        // Store the base64 data in the hidden input field
+        hiddenCaptureInput.value = imageDataURL;
+        captureStatus.textContent = 'Photo captured! Ready to register.';
+        // Optionally stop the webcam after capture
+        // stopWebcam();
+    });
+
+    // Stop webcam when navigating away
+    window.addEventListener('beforeunload', stopWebcam);
+
+    // Clear other input when one is chosen (redundant with button clicks but safe)
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+             hiddenCaptureInput.value = '';
+             stopWebcam();
+        }
+    });
+
+});
+</script>
+{% endblock %}

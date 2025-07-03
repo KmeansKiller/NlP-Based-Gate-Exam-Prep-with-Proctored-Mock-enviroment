@@ -1,0 +1,38 @@
+{% extends "exam/base.html" %}
+
+{% block title %}Verify Phone Number{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h2 class="card-title text-center mb-4">Enter OTP</h2>
+          <p class="text-center text-muted">An OTP has been sent to your registered phone number. Please enter it below to complete your registration.</p>
+
+          {% if error %}
+            <div class="alert alert-danger" role="alert">
+              {{ error }}
+            </div>
+          {% endif %}
+
+          <form method="POST" action="{% url 'verify_otp' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="otp" class="form-label">Enter OTP:</label>
+              <input type="text" name="otp" id="otp" class="form-control" required pattern="\d*" inputmode="numeric" autocomplete="one-time-code">
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success btn-lg">Verify OTP</button>
+            </div>
+             <p class="text-center mt-3">
+                  Didn't receive OTP? <a href="{% url 'register' %}">Register again</a>
+                  {# Add resend logic here if needed #}
+              </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

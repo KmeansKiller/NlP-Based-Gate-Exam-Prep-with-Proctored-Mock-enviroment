@@ -1,0 +1,41 @@
+{% extends "exam/base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+  <style>
+    .profile-container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .profile-container h2 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .profile-container p {
+      font-size: 1.1em;
+      color: #555;
+      margin: 10px 0;
+    }
+    .profile-image {
+      max-width: 200px;
+      border-radius: 50%;
+      margin-top: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+  <div class="profile-container">
+    <h2>Profile</h2>
+    {% if request.user.candidateprofile.face_data %}
+      <p><strong>Profile Image:</strong></p>
+      <img src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg" alt="Profile Image" class="profile-image">
+    {% endif %}
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Full name:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</p>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+    
+  </div>
+{% endblock %}

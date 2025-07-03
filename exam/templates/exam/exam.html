@@ -1,0 +1,80 @@
+{% extends "exam/base.html" %}
+{% load static %}
+
+{% block title %}GATE Exam{% endblock %}
+
+{% block content %}
+  <h2 class="text-center mb-4">GATE Exam Interface</h2>
+  <p class="text-center">Exam Session ID: {{ session.id }}</p>
+
+  <div id="timer" class="alert alert-info text-center" role="alert">Time Left: 60:00</div>
+
+  <div class="text-center mb-3">
+      <video id="webcam" autoplay muted style="width:320px; height:240px;" class="border rounded"></video>
+      <div id="proctorStatus" class="mt-2 fw-bold">Initializing Proctoring...</div>
+  </div>
+
+  <form id="examForm" method="POST" action="{% url 'submit_exam' %}">
+    {% csrf_token %}
+    <input type="hidden" name="session_id" value="{{ session.id }}">
+
+    {% for question in questions %}
+      <div class="card question-block mb-4 shadow-sm">
+        <div class="card-body">
+          <p class="card-text"><strong>Q{{ forloop.counter }}:</strong> {{ question.question_text }}</p>
+          <hr>
+          {% if question.question_type == 'MCQ' %}
+            {% for key, value in question.choices.items %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="{{ key }}" id="q{{ question.id }}_{{ key }}">
+                <label class="form-check-label" for="q{{ question.id }}_{{ key }}">
+                  {{ key }}: {{ value }}
+                </label>
+              </div>
+            {% endfor %}
+          {% elif question.question_type == 'MSQ' %}
+            {% for key, value in question.choices.items %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="question_{{ question.id }}" value="{{ key }}" id="q{{ question.id }}_{{ key }}">
+                <label class="form-check-label" for="q{{ question.id }}_{{ key }}">
+                  {{ key }}: {{ value }}
+                </label>
+              </div>
+            {% endfor %}
+          {% elif question.question_type == 'NAT' %}
+             <div class="mb-3">
+                 <label for="q{{ question.id }}_nat" class="form-label">Your Answer:</label>
+                 <input type="number" step="any" name="question_{{ question.id }}" id="q{{ question.id }}_nat" class="form-control" required>
+             </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="d-grid gap-2 col-6 mx-auto mt-4">
+         <button type="submit" class="btn btn-success btn-lg">Submit Exam</button>
+    </div>
+  </form>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'exam/js/exam.js' %}"></script>
+  <script>
+     // Add CSRF token setup for AJAX POST request in exam.js
+     function getCookie(name) {
+         let cookieValue = null;
+         if (document.cookie && document.cookie !== '') {
+             const cookies = document.cookie.split(';');
+             for (let i = 0; i < cookies.length; i++) {
+                 const cookie = cookies[i].trim();
+                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                     break;
+                 }
+             }
+         }
+         return cookieValue;
+     }
+     const csrftoken = getCookie('csrftoken');
+  </script>
+{% endblock %}

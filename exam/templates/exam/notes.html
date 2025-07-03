@@ -1,0 +1,28 @@
+{% extends "exam/base.html" %}
+{% load static %}
+
+{% block title %}Study Notes{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Study Notes</h2>
+
+  {% if notes_list %}
+    <div class="list-group shadow-sm">
+      {% for note in notes_list %}
+        <a href="{{ note.file.url }}" class="list-group-item list-group-item-action flex-column align-items-start mb-2" target="_blank" download>
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ note.title }}</h5>
+            <small class="text-muted">{{ note.uploaded_at|date:"Y-m-d" }}</small>
+          </div>
+          <p class="mb-1">{{ note.description|default:"No description available."|truncatewords:30 }}</p>
+          <small class="text-muted">Subject: {{ note.get_subject_display }}</small>
+           <span class="badge bg-primary rounded-pill float-end">Download</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="alert">
+      No study notes have been uploaded yet. Check back later!
+    </div>
+  {% endif %}
+{% endblock %}

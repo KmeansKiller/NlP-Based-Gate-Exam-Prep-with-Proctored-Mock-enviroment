@@ -1,0 +1,28 @@
+{% extends "exam/base.html" %}
+{% load static %}
+
+{% block title %}Previous Question Papers{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Previous Question Papers</h2>
+
+  {% if papers %}
+    <div class="list-group shadow-sm">
+      {% for paper in papers %}
+        <a href="{{ paper.file.url }}" class="list-group-item list-group-item-action flex-column align-items-start mb-2" target="_blank" download>
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ paper.title }} ({{ paper.year }})</h5>
+             <small class="text-muted">{{ paper.uploaded_at|date:"Y-m-d" }}</small>
+          </div>
+           <p class="mb-1">Subject: {{ paper.get_subject_display }}</p>
+          <small class="text-muted">Year: {{ paper.year }}</small>
+           <span class="badge bg-success rounded-pill float-end">Download</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="alert">
+      No previous question papers have been uploaded yet. Check back later!
+    </div>
+  {% endif %}
+{% endblock %}
