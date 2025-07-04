@@ -1,0 +1,12 @@
+Django>=3.2,<5.0
+djangorestframework
+opencv-python
+numpy
+face-recognition
+pillow
+nltk
+scikit-learn
+gunicorn
+whitenoise
+dj-database-url
+python-dotenv
